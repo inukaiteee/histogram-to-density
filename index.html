@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ヒストグラムから分布曲線へ</title>
+<style>
+:root{color-scheme:light;--ink:#183248;--muted:#526779;--blue:#225696;--blue-light:#d9e8f7;--orange:#b8510b;--line:#d9e1e8;--paper:#fff;--wash:#f4f7fa}
+[hidden]{display:none!important}
+fieldset{min-width:0;margin:0;padding:0;border:0}.chart-wrap{height:380px}.chart-wrap canvas{visibility:hidden}.chart-fallback{position:absolute;inset:0;width:100%;height:100%}.preview-note{margin:10px 0;padding:10px 12px;background:var(--wash);color:var(--muted);font-size:14px}.script-only{display:none}.interactive-ready .chart-wrap canvas{visibility:visible}.interactive-ready .chart-fallback,.interactive-ready .preview-note{display:none}.interactive-ready .script-only{display:block}
+.population{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}.population select{font:inherit;min-height:42px;padding:7px 30px 7px 12px;border:1px solid var(--line);border-radius:5px;background:white;color:var(--ink)}.population output{color:var(--muted);font-size:15px}.source-note{font-size:14px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;margin:18px 0 0}.source-note a{color:var(--blue);text-underline-offset:3px}.source-note p{margin:5px 0}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;font-size:16px;line-height:1.6}main{max-width:1180px;margin:auto;padding:24px 32px 32px}header{display:flex;justify-content:space-between;align-items:baseline;gap:16px;border-bottom:3px solid var(--blue);padding-bottom:14px;margin-bottom:18px}h1{font-size:clamp(23px,3vw,32px);line-height:1.35;margin:0;letter-spacing:.02em}header span{white-space:nowrap;color:var(--blue)}button,input{font:inherit}button{border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);padding:9px 16px;cursor:pointer;min-height:44px;font-weight:600}button:hover{background:var(--wash)}button:disabled{opacity:.4;cursor:default}button.primary{background:var(--blue);color:white;border-color:var(--blue)}button.primary:hover{background:#17467c}:focus-visible{outline:3px solid #e3a629;outline-offset:3px}.controls{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-bottom:16px}.control-heading{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}.value{font-size:26px;font-weight:700;color:var(--blue);font-variant-numeric:tabular-nums}.unit{font-size:16px;font-weight:400;margin-left:4px}.control input[type=range]{display:block;width:100%;height:26px;accent-color:var(--blue);margin:0;cursor:pointer}.ends{display:flex;justify-content:space-between;font-size:13px;color:var(--muted)}.action-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding-bottom:16px;border-bottom:1px solid var(--line)}.check{display:flex;align-items:center;gap:8px;min-height:44px;margin-left:auto;cursor:pointer}.check input{width:19px;height:19px;accent-color:var(--orange)}.stage{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:18px 0 3px}.stage h2{margin:0;font-size:20px;font-weight:600}.legend{display:flex;flex-wrap:wrap;gap:22px;font-size:14px;color:var(--muted);margin:0 0 4px}.legend span{display:flex;gap:7px;align-items:center}.swatch{display:inline-block;width:20px;height:12px;background:var(--blue-light);border:1px solid var(--blue)}.curve-swatch{width:23px;height:0;border-top:3px solid var(--orange)}.chart-wrap{position:relative;width:100%;height:clamp(320px,47vh,450px)}canvas{display:block;width:100%;height:100%;touch-action:pan-y}.detail{min-height:32px;font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums}.insight{display:flex;align-items:start;gap:20px;border-top:1px solid var(--line);padding-top:14px;margin-top:8px}.insight p{margin:0;flex:1}.area{white-space:nowrap;color:var(--blue);font-variant-numeric:tabular-nums}.area strong{font-size:24px;margin-left:8px}.formula{color:var(--muted);font-size:15px;margin:9px 0 0}summary{cursor:pointer;font-size:15px;padding:5px 0;color:var(--ink)}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;margin-top:10px}th,td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line)}th:first-child,td:first-child{text-align:left}th{font-weight:600}caption{text-align:left;margin-bottom:5px}details.data{margin-top:12px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(max-width:680px){main{padding:18px 16px 26px}header{align-items:start;gap:8px}header span{font-size:14px;margin-top:4px}h1{max-width:260px}.controls{gap:12px;grid-template-columns:1fr}.control-heading{margin-bottom:0}.value{font-size:23px}.ends{display:none}.action-row{gap:8px}.check{margin-left:0;width:100%}.stage{margin-top:14px}.stage h2{font-size:18px}.legend{gap:10px;font-size:13px}.chart-wrap{height:330px}.insight{display:block}.area{margin-top:8px}.detail{min-height:51px;font-size:14px}.formula{font-size:14px}th,td{font-size:13px;padding:6px 3px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+  <header><h1>ヒストグラムから分布曲線へ</h1><span>冊子p.2</span></header>
+  <fieldset id="interactive-controls" disabled aria-label="グラフの操作">
+  <div class="population"><label for="population">全国の高校1年生（15歳）</label><select id="population"><option value="girls">女子</option><option value="boys">男子</option></select><output id="population-stats" for="population">平均157.0cm ／ 標準偏差5.42cm</output></div>
+  <section class="controls" aria-label="ヒストグラムの条件">
+    <div class="control">
+      <div class="control-heading"><label for="people">調べる人数</label><output class="value" id="people-value" for="people">100<span class="unit">人</span></output></div>
+      <input id="people" type="range" min="0" max="10" step="1" value="1" aria-valuetext="100人">
+      <div class="ends"><span>50人</span><span>100,000人</span></div>
+    </div>
+    <div class="control">
+      <div class="control-heading"><label for="width">階級の幅</label><output class="value" id="width-value" for="width">5<span class="unit">cm</span></output></div>
+      <input id="width" type="range" min="0" max="5" step="1" value="1" aria-valuetext="5センチメートル">
+      <div class="ends"><span>粗い：10cm</span><span>細かい：0.25cm</span></div>
+    </div>
+  </section>
+  <div class="action-row">
+    <button class="primary" id="play" type="button">変化を再生</button>
+    <button id="reset" type="button">最初に戻す</button>
+    <label class="check"><input id="curve" type="checkbox">分布曲線を重ねる</label>
+  </div>
+  </fieldset>
+  <div class="stage"><h2 id="stage-title">100人を，5cmごとに分ける</h2></div>
+  <div class="legend"><span><i class="swatch" aria-hidden="true"></i>身長のヒストグラム（シミュレーション）</span><span id="curve-legend" hidden><i class="curve-swatch" aria-hidden="true"></i>正規分布の曲線</span></div>
+  <div class="chart-wrap">
+    <!-- STATIC_CHART_START -->
+    <svg class="chart-fallback" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 380" role="img" aria-labelledby="static-chart-title">
+    <title id="static-chart-title">全国の15歳女子の公表値に基づくシミュレーション．100人を階級幅5cmで集計したヒストグラム．棒の面積の合計は1．</title>
+    <g font-family="-apple-system,BlinkMacSystemFont,Hiragino Kaku Gothic ProN,Yu Gothic,Meiryo,sans-serif" font-size="15" fill="#526779">
+    <text x="60" y="22">高さ（1/cm）</text>
+    <path d="M60 328H614" stroke="#e1e7ed"/><text x="50" y="333" text-anchor="end">0</text>
+    <path d="M60 256H614" stroke="#e1e7ed"/><text x="50" y="261" text-anchor="end">0.03</text>
+    <path d="M60 184H614" stroke="#e1e7ed"/><text x="50" y="189" text-anchor="end">0.06</text>
+    <path d="M60 112H614" stroke="#e1e7ed"/><text x="50" y="117" text-anchor="end">0.09</text>
+    <path d="M60 40H614" stroke="#e1e7ed"/><text x="50" y="45" text-anchor="end">0.12</text>
+    <rect x="178.714" y="308.8" width="39.571" height="19.2" fill="#d9e8f7" stroke="#225696" stroke-width="1.2"><title>145～150cm未満：4人</title></rect>
+    <rect x="218.286" y="246.4" width="39.571" height="81.6" fill="#d9e8f7" stroke="#225696" stroke-width="1.2"><title>150～155cm未満：17人</title></rect>
+    <rect x="257.857" y="140.8" width="39.571" height="187.2" fill="#d9e8f7" stroke="#225696" stroke-width="1.2"><title>155～160cm未満：39人</title></rect>
+    <rect x="297.429" y="160" width="39.571" height="168" fill="#d9e8f7" stroke="#225696" stroke-width="1.2"><title>160～165cm未満：35人</title></rect>
+    <rect x="337" y="308.8" width="39.571" height="19.2" fill="#d9e8f7" stroke="#225696" stroke-width="1.2"><title>165～170cm未満：4人</title></rect>
+    <rect x="376.571" y="323.2" width="39.571" height="4.8" fill="#d9e8f7" stroke="#225696" stroke-width="1.2"><title>170～175cm未満：1人</title></rect>
+    <path d="M60 40V328H614" fill="none" stroke="#688096"/>
+    <path d="M60 328v5" stroke="#688096"/><text x="60" y="353" text-anchor="middle">130</text>
+    <path d="M139.143 328v5" stroke="#688096"/><text x="139.143" y="353" text-anchor="middle">140</text>
+    <path d="M218.286 328v5" stroke="#688096"/><text x="218.286" y="353" text-anchor="middle">150</text>
+    <path d="M297.429 328v5" stroke="#688096"/><text x="297.429" y="353" text-anchor="middle">160</text>
+    <path d="M376.571 328v5" stroke="#688096"/><text x="376.571" y="353" text-anchor="middle">170</text>
+    <path d="M455.714 328v5" stroke="#688096"/><text x="455.714" y="353" text-anchor="middle">180</text>
+    <path d="M534.857 328v5" stroke="#688096"/><text x="534.857" y="353" text-anchor="middle">190</text>
+    <path d="M614 328v5" stroke="#688096"/><text x="614" y="353" text-anchor="middle">200</text>
+    <text x="337" y="375" text-anchor="middle" fill="#183248">身長（cm）</text></g></svg>
+    <!-- STATIC_CHART_END -->
+    <canvas id="chart" tabindex="0" role="img" aria-hidden="true" aria-label="100人の身長を階級幅5cmで集計したヒストグラム" aria-describedby="chart-help"></canvas>
+  </div>
+  <p class="preview-note" role="status">初期グラフを表示しています．操作できない場合は，JavaScriptが動くブラウザーで開いてください．iPadの「ファイル」のプレビューでは操作できないことがあります．</p>
+  <p class="sr-only script-only" id="chart-help">横軸は身長，縦軸は相対度数を階級の幅で割った値です．棒を選ぶと人数と面積が分かります．左右の矢印キーでも棒を選べます．すべての数値は下の集計表でも確認できます．</p>
+  <div class="detail script-only" id="bin-detail">棒を選ぶと，人数と面積を確認できます．</div>
+  <div class="insight">
+    <p id="insight" aria-live="polite">まず，少人数の身長を大きな区間で集計します．</p>
+    <div class="area">棒の面積の合計<strong id="area">1.000</strong></div>
+  </div>
+  <p class="formula">棒の高さ ＝ 相対度数 ÷ 階級の幅．高さ × 幅が，その区間に入る人の割合です．</p>
+  <div class="source-note">
+    <p>出典：文部科学省「<a href="https://www.e-stat.go.jp/stat-search/files?stat_infid=000040409507" target="_blank" rel="noopener noreferrer">令和7年度（2025年度）学校保健統計調査</a>」全国・15歳（4月1日現在）．</p>
+    <p>公表された平均・標準偏差を使い，正規分布を仮定したシミュレーションです．一人ひとりの実測データではありません．</p>
+  </div>
+  <details class="data script-only" id="data-table"><summary>集計表</summary><table><caption id="table-caption">100人，階級の幅5cm</caption><thead><tr><th scope="col">身長（cm）</th><th scope="col">人数</th><th scope="col">相対度数<br>＝面積</th><th scope="col">高さ<br>（1/cm）</th></tr></thead><tbody id="table-body"></tbody></table></details>
+  <p class="sr-only" id="announce" aria-live="polite"></p>
+</main>
+<script>
+(() => {
+  'use strict';
+  const counts = [50,100,200,500,1000,2000,5000,10000,20000,50000,100000];
+  const widths = [10,5,2.5,1,0.5,0.25];
+  // 文部科学省・令和7年度学校保健統計調査，全国表1．15歳・設置者計．
+  // 女子：01-006!D17:E17，男子：01-001!D17:E17．単位はcm．
+  const profiles = {girls:{label:'女子',mean:157.0,sd:5.42},boys:{label:'男子',mean:168.6,sd:5.93}};
+  const samplingSeed=20261005;
+  const steps = [
+    {n:100,w:5,curve:false,title:'100人を，5cmごとに分ける',note:'まず，少人数の身長を大きな区間で集計します．'},
+    {n:100,w:1,curve:false,title:'人数を変えずに，階級を細かくする',note:'同じ100人を，1cmごとに分けました．'},
+    {n:1000,w:1,curve:false,title:'階級の幅を保って，1,000人に増やす',note:'幅は1cmのまま．人数を増やすと，偶然の凹凸が小さくなっていきます．'},
+    {n:10000,w:1,curve:false,title:'10,000人に増やす',note:'階級の幅は1cmのまま，10,000人を集計しています．'},
+    {n:100000,w:0.5,curve:false,title:'100,000人を，0.5cmごとに分ける',note:'十分に人数を増やし，階級の幅も細かくすると，細い棒の並びが曲線に近づいて見えます．'},
+    {n:100000,w:0.25,curve:true,title:'ヒストグラムと分布曲線を重ねる',note:'棒の並びが，仮定した分布の曲線に近づいています．有限の人数なので，小さな凹凸は残ります．'}
+  ];
+  const el = Object.fromEntries(['people','people-value','width','width-value','curve','play','reset','stage-title','curve-legend','chart','bin-detail','insight','area','population','population-stats','data-table','table-body','table-caption','announce'].map(id => [id,document.getElementById(id)]));
+  const ctx=el.chart.getContext('2d');
+  if(!ctx)return;
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+  const state={n:100,w:5,curve:false,population:'girls',step:0,playing:false,selected:-1};
+  let data, domain, hist, timer=null, frame=null, current=[], transition=null, plot, size={w:0,h:0}, yTop=.12;
+  const number = value => value.toLocaleString('ja-JP');
+  const decimal = value => Number(value.toFixed(6)).toString();
+  function rng(seed) {
+    let a=seed>>>0;
+    return () => {
+      a=(a+0x6D2B79F5)>>>0;
+      let t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61);
+      return ((t^(t>>>14))>>>0)/4294967296;
+    };
+  }
+  function generate(seed) {
+    const random=rng(seed), values=new Float64Array(100000);
+    const {mean,sd}=profiles[state.population];
+    let min=130,max=200;
+    for(let i=0;i<values.length;i+=2) {
+      const r=Math.sqrt(-2*Math.log(1-random())), angle=2*Math.PI*random();
+      values[i]=mean+sd*r*Math.cos(angle);
+      values[i+1]=mean+sd*r*Math.sin(angle);
+      min=Math.min(min,values[i],values[i+1]); max=Math.max(max,values[i],values[i+1]);
+    }
+    data=values;
+    domain={min:Math.floor(min/10)*10,max:Math.ceil(max/10)*10};
+  }
+  function makeHistogram() {
+    const length=Math.round((domain.max-domain.min)/state.w), bins=new Uint32Array(length);
+    for(let i=0;i<state.n;i++) {
+      const b=Math.floor((data[i]-domain.min)/state.w);
+      if(b<0 || b>=length) throw new Error('データが集計範囲の外にあります．');
+      bins[b]++;
+    }
+    return Array.from(bins,(count,i)=>({lo:domain.min+i*state.w,hi:domain.min+(i+1)*state.w,count,area:count/state.n,density:count/(state.n*state.w)}));
+  }
+  function finelySpaced() {
+    const fineWidth=.25, length=Math.round((domain.max-domain.min)/fineWidth);
+    return Array.from({length},(_,i)=>hist[Math.min(hist.length-1,Math.floor((i+.5)*fineWidth/state.w))].density);
+  }
+  function syncControls() {
+    const profile=profiles[state.population];
+    el.population.value=state.population;
+    el['population-stats'].textContent='平均'+profile.mean.toFixed(1)+'cm ／ 標準偏差'+profile.sd.toFixed(2)+'cm';
+    el.people.value=counts.indexOf(state.n); el.width.value=widths.indexOf(state.w); el.curve.checked=state.curve;
+    el['people-value'].innerHTML=number(state.n)+'<span class="unit">人</span>';
+    el['width-value'].innerHTML=state.w+'<span class="unit">cm</span>';
+    el.people.setAttribute('aria-valuetext',number(state.n)+'人');
+    el.width.setAttribute('aria-valuetext',state.w+'センチメートル');
+    el['curve-legend'].hidden=!state.curve;
+    el['stage-title'].textContent=state.step<0?number(state.n)+'人を，'+state.w+'cmごとに分ける':steps[state.step].title;
+    el.play.textContent=state.playing?'一時停止':state.step===steps.length-1?'もう一度再生':'変化を再生';
+    el['insight'].textContent=state.step<0?'人数と階級の幅を変えて，形を比べてみましょう．':steps[state.step].note;
+    const sum=hist.reduce((a,b)=>a+b.area,0);
+    el.area.textContent=sum.toFixed(3);
+    el.chart.setAttribute('aria-label','全国の15歳'+profile.label+'の公表平均・標準偏差に基づくシミュレーション．'+number(state.n)+'人の身長を階級幅'+state.w+'cmで集計したヒストグラム．棒の面積の合計は'+sum.toFixed(3)+'．'+(state.curve?'正規分布の密度曲線を重ねています．':''));
+    el['table-caption'].textContent=number(state.n)+'人，階級の幅'+state.w+'cm';
+  }
+  function update(animate=true) {
+    if(frame) cancelAnimationFrame(frame);
+    hist=makeHistogram();
+    const target=finelySpaced();
+    const peak=Math.max(...target), newTop=Math.max(.12,Math.ceil(peak/.04)*.04);
+    state.selected=-1;
+    el['bin-detail'].textContent='棒を選ぶと，人数と面積を確認できます．';
+    syncControls();
+    if(el['data-table'].open) fillTable();
+    if(animate && !reduced.matches && current.length===target.length) {
+      transition={from:current.slice(),to:target,fromY:yTop,toY:newTop,start:performance.now()};
+      frame=requestAnimationFrame(animateFrame);
+    } else {current=target;yTop=newTop;transition=null;draw();}
+  }
+  function animateFrame(time) {
+    const t=Math.min(1,(time-transition.start)/360), u=t*t*(3-2*t);
+    current=transition.to.map((v,i)=>transition.from[i]+(v-transition.from[i])*u);
+    yTop=transition.fromY+(transition.toY-transition.fromY)*u;
+    draw();
+    if(t<1)frame=requestAnimationFrame(animateFrame);else{transition=null;frame=null;}
+  }
+  function resize() {
+    const rect=el.chart.getBoundingClientRect(), dpr=Math.min(window.devicePixelRatio||1,3);
+    size={w:rect.width,h:rect.height};
+    el.chart.width=Math.round(rect.width*dpr);el.chart.height=Math.round(rect.height*dpr);
+    ctx.setTransform(dpr,0,0,dpr,0,0);draw();
+  }
+  function draw() {
+    if(!hist || !size.w)return;
+    const W=size.w,H=size.h,narrow=W<500;
+    const margin={l:narrow?52:64,r:18,t:35,b:52};
+    plot={left:margin.l,top:margin.t,width:W-margin.l-margin.r,height:H-margin.t-margin.b};
+    const X=x=>plot.left+(x-domain.min)/(domain.max-domain.min)*plot.width;
+    const Y=y=>plot.top+plot.height-y/yTop*plot.height;
+    ctx.clearRect(0,0,W,H);ctx.font='14px -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", sans-serif';ctx.lineWidth=1;
+    ctx.fillStyle='#526779';ctx.textAlign='left';ctx.fillText(narrow?'高さ（1/cm）':'高さ：相対度数 ÷ 階級の幅（1/cm）',plot.left,18);
+    for(let i=0;i<=4;i++) {
+      const value=yTop*i/4,y=Y(value);
+      ctx.strokeStyle='#e1e7ed';ctx.beginPath();ctx.moveTo(plot.left,y);ctx.lineTo(W-margin.r,y);ctx.stroke();
+      ctx.fillStyle='#526779';ctx.textAlign='right';ctx.fillText(value===0?'0':decimal(value),plot.left-10,y+5);
+    }
+    ctx.save();ctx.beginPath();ctx.rect(plot.left,plot.top,plot.width,plot.height);ctx.clip();
+    const pixelWidth=plot.width/current.length;
+    ctx.fillStyle='#d9e8f7';
+    current.forEach((value,i)=>ctx.fillRect(plot.left+i*pixelWidth,Y(value),pixelWidth+.5,Y(0)-Y(value)));
+    ctx.beginPath();ctx.strokeStyle='#225696';ctx.lineWidth=1.4;
+    current.forEach((value,i)=>{const x=plot.left+i*pixelWidth,y=Y(value);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);ctx.lineTo(x+pixelWidth,y);});ctx.stroke();
+    ctx.strokeStyle='rgba(34,86,150,.55)';ctx.lineWidth=.8;
+    hist.forEach((b,i)=>{if(b.count===0)return;const fineIndex=Math.min(current.length-1,Math.floor(i*state.w/.25));ctx.beginPath();ctx.moveTo(X(b.lo),Y(0));ctx.lineTo(X(b.lo),Y(current[fineIndex]));ctx.stroke();});
+    if(state.selected>=0) {
+      const b=hist[state.selected];ctx.fillStyle='rgba(34,86,150,.18)';ctx.fillRect(X(b.lo),Y(b.density),X(b.hi)-X(b.lo),Y(0)-Y(b.density));
+    }
+    if(state.curve) {
+      const {mean,sd}=profiles[state.population];
+      ctx.beginPath();ctx.strokeStyle='#b8510b';ctx.lineWidth=3;
+      for(let i=0;i<=600;i++){const x=domain.min+(domain.max-domain.min)*i/600, f=Math.exp(-.5*((x-mean)/sd)**2)/(sd*Math.sqrt(2*Math.PI));if(i===0)ctx.moveTo(X(x),Y(f));else ctx.lineTo(X(x),Y(f));}ctx.stroke();
+    }
+    ctx.restore();ctx.strokeStyle='#688096';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(plot.left,plot.top);ctx.lineTo(plot.left,Y(0));ctx.lineTo(W-margin.r,Y(0));ctx.stroke();
+    const tickStep=narrow?20:5;
+    const ticks=[];for(let x=Math.ceil(domain.min/tickStep)*tickStep;x<=domain.max;x+=tickStep)ticks.push(x);
+    ctx.fillStyle='#526779';ctx.textAlign='center';
+    for(const x of ticks){ctx.beginPath();ctx.moveTo(X(x),Y(0));ctx.lineTo(X(x),Y(0)+5);ctx.stroke();ctx.fillText(x,X(x),Y(0)+23);}
+    ctx.fillStyle='#183248';ctx.fillText('身長（cm）',plot.left+plot.width/2,H-6);
+  }
+  function stop() {state.playing=false;clearTimeout(timer);timer=null;el.play.textContent=state.step===steps.length-1?'もう一度再生':'変化を再生';}
+  function setStep(index) {
+    const s=steps[index];Object.assign(state,{n:s.n,w:s.w,curve:s.curve,step:index});update();
+  }
+  function schedule() {
+    timer=setTimeout(()=>{
+      if(!state.playing)return;
+      if(state.step===steps.length-1){stop();return;}
+      setStep(state.step+1);schedule();
+    },2600);
+  }
+  el.play.addEventListener('click',()=>{
+    if(state.playing){stop();return;}
+    if(state.step<0 || state.step===steps.length-1)setStep(0);
+    state.playing=true;el.play.textContent='一時停止';schedule();
+  });
+  el.reset.addEventListener('click',()=>{stop();setStep(0);});
+  el.people.addEventListener('input',()=>{stop();state.n=counts[Number(el.people.value)];state.step=-1;update();});
+  el.width.addEventListener('input',()=>{stop();state.w=widths[Number(el.width.value)];state.step=-1;update();});
+  el.curve.addEventListener('change',()=>{stop();state.curve=el.curve.checked;state.step=-1;syncControls();draw();});
+  el.population.addEventListener('change',()=>{
+    stop();state.population=el.population.value;generate(samplingSeed);current=[];update(false);
+    el.announce.textContent='全国の15歳'+profiles[state.population].label+'の公表値に切り替えました．';
+  });
+  function select(index,announce=false) {
+    state.selected=Math.max(0,Math.min(hist.length-1,index));const b=hist[state.selected];
+    const text=decimal(b.lo)+'～'+decimal(b.hi)+'cm未満：'+number(b.count)+'人 ／ 面積 '+decimal(b.area)+' ／ 高さ '+decimal(b.density);
+    el['bin-detail'].textContent=text;if(announce)el.announce.textContent=text;draw();
+  }
+  function selectAt(event) {
+    if(!plot)return;
+    const r=el.chart.getBoundingClientRect(),x=event.clientX-r.left,y=event.clientY-r.top;
+    if(x<plot.left || x>plot.left+plot.width || y<plot.top || y>plot.top+plot.height)return;
+    select(Math.floor((x-plot.left)/plot.width*hist.length));
+  }
+  el.chart.addEventListener('pointermove',event=>{if(event.pointerType==='mouse')selectAt(event);});
+  el.chart.addEventListener('pointerdown',selectAt);
+  el.chart.addEventListener('pointerleave',()=>{state.selected=-1;draw();});
+  el.chart.addEventListener('keydown',event=>{
+    if(!['ArrowLeft','ArrowRight','Home','End'].includes(event.key))return;
+    event.preventDefault();
+    let index=state.selected<0?Math.floor((profiles[state.population].mean-domain.min)/state.w):state.selected;
+    if(event.key==='ArrowLeft')index--;if(event.key==='ArrowRight')index++;if(event.key==='Home')index=0;if(event.key==='End')index=hist.length-1;
+    select(index,true);
+  });
+  function fillTable() {
+    const fragment=document.createDocumentFragment();
+    for(const b of hist) {
+      const row=document.createElement('tr');
+      for(const value of [decimal(b.lo)+'以上～'+decimal(b.hi)+'未満',number(b.count),decimal(b.area),decimal(b.density)]) {const cell=document.createElement('td');cell.textContent=value;row.appendChild(cell);}
+      fragment.appendChild(row);
+    }
+    el['table-body'].textContent='';
+    el['table-body'].appendChild(fragment);
+  }
+  el['data-table'].addEventListener('toggle',()=>{if(el['data-table'].open)fillTable();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stop();});
+  generate(samplingSeed);update(false);resize();
+  el.chart.removeAttribute('aria-hidden');
+  document.body.classList.add('interactive-ready');
+  document.getElementById('interactive-controls').disabled=false;
+  if(typeof ResizeObserver==='function')new ResizeObserver(resize).observe(el.chart.parentElement);
+  else window.addEventListener('resize',resize);
+  if(typeof reduced.addEventListener==='function')reduced.addEventListener('change',()=>update(false));
+  else if(typeof reduced.addListener==='function')reduced.addListener(()=>update(false));
+  // 数値検証用の読み取り専用スナップショット．画面操作は各コントロールから行う．
+  Object.defineProperty(window,'histogramSnapshot',{value:()=>({state:{...state},profile:{...profiles[state.population]},domain:{...domain},bins:hist.map(b=>({...b})),firstHeights:Array.from(data.slice(0,10))}),writable:false});
+})();
+</script>
+</body>
+</html>
